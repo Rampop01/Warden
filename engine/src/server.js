@@ -31,7 +31,8 @@ const indexer = new VaultIndexer({
   rpcUrl,
   vaultAddress: contracts.vault,
   executorAddress: contracts.executor,
-  baseDecimals: 6
+  baseDecimals: 6,
+  shareDecimalsOffset: 6
 });
 const advisor = new AIAgentAdvisor({ model: "gemini-3.8-flash" });
 
@@ -210,7 +211,7 @@ const server = http.createServer((req, res) => {
 
   if (url.pathname === "/api/vault-state") {
     const navUSDC = Number(liveOnChainState.totalAssets) / 1e6;
-    const supplyShares = Number(liveOnChainState.totalSupply) / 1e6;
+    const supplyShares = Number(liveOnChainState.totalSupply) / 1e12;
     const sharePrice = supplyShares > 0 ? navUSDC / supplyShares : 1.0;
     const inFlightUSDC = Number(liveOnChainState.inFlight) / 1e6;
     const lossTodayUSDC = Number(liveOnChainState.lossToday) / 1e6;

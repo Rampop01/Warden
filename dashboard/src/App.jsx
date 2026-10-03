@@ -26,12 +26,12 @@ export const DEPLOYED_CONTRACTS = {
 };
 
 const DEFAULT_STATE = {
-  blockNumber: 12940250,
+  blockNumber: 67896800,
   contracts: DEPLOYED_CONTRACTS,
   formatted: {
-    navUsdc: 0,
-    sharePriceUsdc: 1.0,
-    totalSupplyShares: 0,
+    navUsdc: 10.00,
+    sharePriceUsdc: 1.0000,
+    totalSupplyShares: 10.00,
     lossTodayUsdc: 0,
     isPaused: false
   },
@@ -47,7 +47,7 @@ const DEFAULT_STATE = {
 export default function App() {
   const [activeTab, setActiveTab] = useState("overview");
 
-  // On-chain / indexer state (never null to avoid Vercel crash)
+  // On-chain / indexer state
   const [indexerState, setIndexerState] = useState(DEFAULT_STATE);
   const [indexerOnline, setIndexerOnline] = useState(true);
   const [aiReport, setAiReport] = useState(null);
@@ -59,6 +59,7 @@ export default function App() {
   const [monBalance, setMonBalance] = useState("0");
   const [usdcBalance, setUsdcBalance] = useState("0");
   const [shareBalance, setShareBalance] = useState("0");
+  const [userDepositedUsdc, setUserDepositedUsdc] = useState("0.00");
   const [txStatus, setTxStatus] = useState(null);
 
   // Form states
@@ -76,7 +77,7 @@ export default function App() {
       });
       setMonBalance((Number(BigInt(monBalHex)) / 1e18).toFixed(4));
 
-      // 2. Circle USDC balance via eth_call
+      // 2. Circle USDC balance via eth_call (6 decimals)
       const cleanAddr = account.toLowerCase().replace("0x", "").padStart(64, "0");
       const usdcCall = await window.ethereum.request({
         method: "eth_call",
@@ -84,12 +85,27 @@ export default function App() {
       });
       setUsdcBalance((Number(BigInt(usdcCall || "0x0")) / 1e6).toFixed(2));
 
-      // 3. Vault Shares balance via eth_call
+      // 3. Vault Shares balance via eth_call (12 decimals: 6 base + 6 offset)
       const sharesCall = await window.ethereum.request({
         method: "eth_call",
         params: [{ to: DEPLOYED_CONTRACTS.vault, data: "0x70a08231" + cleanAddr }, "latest"]
       });
-      setShareBalance((Number(BigInt(sharesCall || "0x0")) / 1e6).toFixed(2));
+      const rawShares = BigInt(sharesCall || "0x0");
+      const sharesFloat = Number(rawShares) / 1e12;
+      setShareBalance(sharesFloat.toFixed(4));
+
+      // 4. Query convertToAssets(uint256) (selector 0x07a2d13a) for exact underlying USDC value
+      if (rawShares > 0n) {
+        const rawSharesHex = rawShares.toString(16).padStart(64, "0");
+        const convertCall = await window.ethereum.request({
+          method: "eth_call",
+          params: [{ to: DEPLOYED_CONTRACTS.vault, data: "0x07a2d13a" + rawSharesHex }, "latest"]
+        });
+        const assetsUnderlying = Number(BigInt(convertCall || "0x0")) / 1e6;
+        setUserDepositedUsdc(assetsUnderlying.toFixed(2));
+      } else {
+        setUserDepositedUsdc("0.00");
+      }
     } catch (err) {
       console.error("Balance fetch error:", err);
     }
@@ -103,12 +119,14 @@ export default function App() {
       const batchCalls = [
         // 0: blockNumber
         { jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: [] },
-        // 1: totalAssets() = 0x01e1d014
-        { jsonrpc: "2.0", id: 2, method: "eth_call", params: [{ to: DEPLOYED_CONTRACTS.vault, data: "0x01e1d014" }, "latest"] },
-        // 2: totalSupply() = 0x18160ddd
+        // 1: totalAssets() = 0x01e1d114 (6 decimals USDC)
+        { jsonrpc: "2.0", id: 2, method: "eth_call", params: [{ to: DEPLOYED_CONTRACTS.vault, data: "0x01e1d114" }, "latest"] },
+        // 2: totalSupply() = 0x18160ddd (12 decimals shares)
         { jsonrpc: "2.0", id: 3, method: "eth_call", params: [{ to: DEPLOYED_CONTRACTS.vault, data: "0x18160ddd" }, "latest"] },
         // 3: paused() = 0x5c975abb
-        { jsonrpc: "2.0", id: 4, method: "eth_call", params: [{ to: DEPLOYED_CONTRACTS.vault, data: "0x5c975abb" }, "latest"] }
+        { jsonrpc: "2.0", id: 4, method: "eth_call", params: [{ to: DEPLOYED_CONTRACTS.vault, data: "0x5c975abb" }, "latest"] },
+        // 4: lossToday() = 0x68fde64f on RiskExecutor
+        { jsonrpc: "2.0", id: 5, method: "eth_call", params: [{ to: DEPLOYED_CONTRACTS.executor, data: "0x68fde64f" }, "latest"] }
       ];
 
       const res = await fetch(rpcUrl, {
@@ -123,15 +141,19 @@ export default function App() {
         const totalAssetsHex = results.find(r => r.id === 2)?.result;
         const totalSupplyHex = results.find(r => r.id === 3)?.result;
         const pausedHex = results.find(r => r.id === 4)?.result;
+        const lossTodayHex = results.find(r => r.id === 5)?.result;
 
-        const blockNum = blockNumHex ? parseInt(blockNumHex, 16) : 12940250;
+        const blockNum = blockNumHex ? parseInt(blockNumHex, 16) : 67896800;
         const assetsBigInt = totalAssetsHex ? BigInt(totalAssetsHex) : 0n;
         const supplyBigInt = totalSupplyHex ? BigInt(totalSupplyHex) : 0n;
         const isPaused = pausedHex ? parseInt(pausedHex, 16) !== 0 : false;
+        const lossTodayBigInt = lossTodayHex ? BigInt(lossTodayHex) : 0n;
 
+        // Assets are 6 decimals (USDC), shares are 12 decimals (offset 6)
         const navUsdc = Number(assetsBigInt) / 1e6;
-        const totalSupplyShares = Number(supplyBigInt) / 1e6;
-        const sharePriceUsdc = totalSupplyShares > 0 ? navUsdc / totalSupplyShares : 1.0;
+        const totalSupplyShares = Number(supplyBigInt) / 1e12;
+        const sharePriceUsdc = totalSupplyShares > 0 ? (navUsdc / totalSupplyShares) : 1.0;
+        const lossTodayUsdc = Number(lossTodayBigInt) / 1e6;
 
         setIndexerState(prev => ({
           ...prev,
@@ -141,7 +163,7 @@ export default function App() {
             navUsdc,
             sharePriceUsdc,
             totalSupplyShares,
-            lossTodayUsdc: prev?.formatted?.lossTodayUsdc || 0,
+            lossTodayUsdc,
             isPaused
           }
         }));
@@ -160,7 +182,6 @@ export default function App() {
           const res = await fetch(`${INDEXER_URL}/api/vault-state`);
           if (res.ok) {
             const data = await res.json();
-            // Ensure contracts object is always populated
             data.contracts = { ...DEPLOYED_CONTRACTS, ...(data.contracts || {}) };
             setIndexerState(data);
             setIndexerOnline(true);
@@ -183,7 +204,7 @@ export default function App() {
   useEffect(() => {
     if (walletAddress) {
       loadUserBalances(walletAddress);
-      const balInterval = setInterval(() => loadUserBalances(walletAddress), 5000);
+      const balInterval = setInterval(() => loadUserBalances(walletAddress), 4000);
       return () => clearInterval(balInterval);
     }
   }, [walletAddress, loadUserBalances]);
@@ -231,7 +252,7 @@ export default function App() {
     }
   };
 
-  // Trigger Deposit Flow (Safe against null)
+  // Trigger Deposit Flow
   const executeDeposit = async () => {
     if (!walletAddress) {
       alert("Please connect your wallet first.");
@@ -279,13 +300,16 @@ export default function App() {
         msg: "Deposit transaction confirmed on Monad Testnet!",
         txHash: depositTx
       });
-      loadUserBalances(walletAddress);
+      setTimeout(() => {
+        loadUserBalances(walletAddress);
+        pollDirectMonadRpc();
+      }, 1500);
     } catch (err) {
       setTxStatus({ step: "error", msg: err.message || "Transaction rejected or failed" });
     }
   };
 
-  // Trigger Redeem Flow
+  // Trigger Redeem Flow (burns shares with 12 decimals)
   const executeRedeem = async () => {
     if (!walletAddress) {
       alert("Please connect your wallet first.");
@@ -299,7 +323,8 @@ export default function App() {
     try {
       setTxStatus({ step: "redeem", msg: "Requesting share redeem signature..." });
       const vaultAddress = indexerState?.contracts?.vault || DEPLOYED_CONTRACTS.vault;
-      const sharesUnits = BigInt(Math.floor(parseFloat(redeemShares) * 1e6));
+      // shares have 12 decimals
+      const sharesUnits = BigInt(Math.floor(parseFloat(redeemShares) * 1e12));
 
       // redeem(uint256 shares, address receiver, address owner) = 0xba087652
       const sharesData = sharesUnits.toString(16).padStart(64, "0");
@@ -317,16 +342,19 @@ export default function App() {
 
       setTxStatus({
         step: "success",
-        msg: "Redeem transaction confirmed on Monad Testnet!",
+        msg: "Redeem transaction confirmed on Monad Testnet! USDC returned to your wallet.",
         txHash: redeemTx
       });
-      loadUserBalances(walletAddress);
+      setTimeout(() => {
+        loadUserBalances(walletAddress);
+        pollDirectMonadRpc();
+      }, 1500);
     } catch (err) {
       setTxStatus({ step: "error", msg: err.message || "Redeem transaction rejected or failed" });
     }
   };
 
-  // Trigger AI Report (with client-side fallback if cloud indexer is offline)
+  // Trigger AI Report
   const fetchAiReport = async () => {
     setLoadingAi(true);
     try {
@@ -341,7 +369,7 @@ export default function App() {
       }
 
       // Client-side synthesis from live on-chain state (for Vercel)
-      const currentNav = indexerState?.formatted?.navUsdc || 0;
+      const currentNav = indexerState?.formatted?.navUsdc || 10.0;
       const sharePrice = indexerState?.formatted?.sharePriceUsdc || 1.0;
       setAiReport({
         vault_status: indexerState?.formatted?.isPaused ? "PAUSED" : "HEALTHY",
@@ -473,7 +501,7 @@ export default function App() {
             >
               <span className={indexerOnline ? "pulse-green" : "pulse-purple"}></span>
               <span style={{ color: "var(--text-secondary)" }}>
-                BLOCK #{indexerState?.blockNumber || "12940250"}
+                BLOCK #{indexerState?.blockNumber || "67896800"}
               </span>
             </div>
 
@@ -530,7 +558,7 @@ export default function App() {
                   Real On-Chain NAV
                 </span>
                 <div className="font-mono" style={{ fontSize: "2rem", fontWeight: 800, marginTop: "6px", color: "#ffffff" }}>
-                  ${(indexerState?.formatted?.navUsdc ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}{" "}
+                  ${(indexerState?.formatted?.navUsdc ?? 10.0).toLocaleString(undefined, { minimumFractionDigits: 2 })}{" "}
                   <span style={{ fontSize: "0.9rem", color: "var(--monad-purple)" }}>USDC</span>
                 </div>
                 <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", display: "block", marginTop: "6px" }}>
@@ -546,7 +574,7 @@ export default function App() {
                   ${(indexerState?.formatted?.sharePriceUsdc ?? 1.0).toFixed(4)}
                 </div>
                 <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", display: "block", marginTop: "6px" }}>
-                  Supply: {(indexerState?.formatted?.totalSupplyShares ?? 0).toLocaleString()} shares
+                  Supply: {(indexerState?.formatted?.totalSupplyShares ?? 10.0).toFixed(2)} shares (12 decimals)
                 </span>
               </div>
 
@@ -591,6 +619,38 @@ export default function App() {
               </div>
             </div>
 
+            {/* Prominent Active Vault Position Card */}
+            <div className="glass-card" style={{ padding: "24px 28px", marginBottom: "28px", border: "1px solid rgba(16, 185, 129, 0.4)", background: "rgba(16, 185, 129, 0.05)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(16, 185, 129, 0.15)", border: "1px solid var(--emerald)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem" }}>
+                  🏦
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--emerald)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    Your Vault Position (Active Deposited Value)
+                  </div>
+                  <div className="font-mono" style={{ fontSize: "1.8rem", fontWeight: 800, color: "#ffffff", marginTop: "2px" }}>
+                    ${userDepositedUsdc} <span style={{ fontSize: "0.95rem", color: "var(--emerald)" }}>USDC</span>
+                  </div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginTop: "2px" }}>
+                    Holding <strong className="font-mono" style={{ color: "#c7bdff" }}>{shareBalance} mtvUSDC</strong> shares • {indexerState?.formatted?.totalSupplyShares > 0 ? ((Number(shareBalance) / indexerState.formatted.totalSupplyShares) * 100).toFixed(1) : "0"}% of vault pool
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  className="btn-monad-secondary"
+                  onClick={() => {
+                    setRedeemShares(shareBalance);
+                  }}
+                  style={{ fontSize: "0.85rem", padding: "8px 18px", borderColor: "rgba(16, 185, 129, 0.4)" }}
+                >
+                  Withdraw All (${userDepositedUsdc})
+                </button>
+              </div>
+            </div>
+
             {/* Wallet Balances Bar */}
             <div className="glass-card" style={{ padding: "20px 24px", marginBottom: "28px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
               <div>
@@ -599,8 +659,8 @@ export default function App() {
                 </span>
                 <div style={{ display: "flex", gap: "24px", marginTop: "8px", flexWrap: "wrap" }}>
                   <span className="font-mono">MON: <strong style={{ color: "#ffffff" }}>{monBalance}</strong></span>
-                  <span className="font-mono">Official USDC: <strong style={{ color: "var(--emerald)" }}>${usdcBalance} USDC</strong></span>
-                  <span className="font-mono">Vault Shares: <strong style={{ color: "var(--monad-purple)" }}>{shareBalance} mtvUSDC</strong></span>
+                  <span className="font-mono">USDC in Wallet: <strong style={{ color: "var(--emerald)" }}>${usdcBalance} USDC</strong></span>
+                  <span className="font-mono">Shares: <strong style={{ color: "var(--monad-purple)" }}>{shareBalance} mtvUSDC</strong></span>
                 </div>
               </div>
               <a
@@ -679,12 +739,12 @@ export default function App() {
               <div className="glass-card" style={{ padding: "28px" }}>
                 <h3 style={{ fontSize: "1.3rem", marginBottom: "8px" }}>Redeem Vault Shares</h3>
                 <p style={{ fontSize: "0.88rem", color: "var(--text-secondary)", marginBottom: "20px" }}>
-                  Burn your <code className="font-mono" style={{ color: "var(--monad-purple)" }}>mtvUSDC</code> shares to withdraw your principal plus accumulated trading yield.
+                  Burn your <code className="font-mono" style={{ color: "var(--monad-purple)" }}>mtvUSDC</code> shares to withdraw your principal plus accumulated trading yield back to USDC.
                 </p>
 
                 <div style={{ marginBottom: "20px" }}>
                   <label style={{ fontSize: "0.78rem", color: "var(--text-tertiary)", display: "block", marginBottom: "8px", fontWeight: 600, textTransform: "uppercase" }}>
-                    SHARES TO REDEEM
+                    SHARES TO REDEEM (mtvUSDC)
                   </label>
                   <div style={{ display: "flex", gap: "10px" }}>
                     <input

@@ -2,11 +2,12 @@
 // Ingests raw chain events, provides idempotent derived accounting, and exposes state metrics.
 
 export class VaultIndexer {
-  constructor({ rpcUrl, vaultAddress, executorAddress, baseDecimals = 6 }) {
+  constructor({ rpcUrl, vaultAddress, executorAddress, baseDecimals = 6, shareDecimalsOffset = 0 }) {
     this.rpcUrl = rpcUrl;
     this.vaultAddress = vaultAddress.toLowerCase();
     this.executorAddress = executorAddress.toLowerCase();
     this.baseDecimals = baseDecimals;
+    this.shareDecimalsOffset = shareDecimalsOffset;
     
     // Immutable raw event log (idempotent keyed by `${txHash}-${logIndex}`)
     this.rawEvents = new Map();
@@ -111,8 +112,9 @@ export class VaultIndexer {
   /** Share price calculation (returns float representation with 6 decimals) */
   getSharePrice() {
     if (this.derivedState.totalSupply === 0n) return 1.0;
-    const ratio = (this.derivedState.nav * 1_000_000n) / this.derivedState.totalSupply;
-    return Number(ratio) / 1_000_000;
+    const factor = 10n ** BigInt(this.baseDecimals + this.shareDecimalsOffset);
+    const ratio = (this.derivedState.nav * factor) / this.derivedState.totalSupply;
+    return Number(ratio) / 10 ** this.baseDecimals;
   }
 
   /** Summary snapshot for dashboards and monitoring */
