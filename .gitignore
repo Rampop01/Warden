@@ -1,0 +1,14 @@
+.env
+*.env
+.env.*
+!.env.example
+node_modules/
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+dashboard/node_modules/
+dashboard/dist/
+engine/node_modules/
+logs/
+scratch/
+

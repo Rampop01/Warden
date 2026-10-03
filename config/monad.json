@@ -1,0 +1,117 @@
+{
+  "_comment": "Verified configuration registry for Monad. Every entry is marked UNVERIFIED until verified against official protocol docs. Live execution is fail-closed and blocked if any required integration is UNVERIFIED.",
+  "activeNetwork": "testnet",
+  "networks": {
+    "testnet": {
+      "name": "monad-testnet",
+      "chainId": 10143,
+      "rpcSource": "https://testnet-rpc.monad.xyz (env: MONAD_RPC_URL)",
+      "explorer": "https://testnet.monadscan.com",
+      "faucet": "https://faucet.monad.xyz",
+      "status": "VERIFIED",
+      "verificationSource": "https://docs.monad.xyz/developer-essentials/testnet",
+      "lastVerified": "2026-10-03",
+      "contracts": {
+        "vault": "0xd9fc6cC979472A5FA52750ae26805462E1638872",
+        "executor": "0x274f499201b0716e6CB632FF5BEc10cAD508eAD6",
+        "owner": "0xb216270aFB9DfcD611AFAf785cEB38250863F2C9",
+        "guardian": "0xb216270aFB9DfcD611AFAf785cEB38250863F2C9",
+        "agent": "0x2c55614E7fC28894F55a7169ce0af42FAFF5E457",
+        "deployedAt": "2026-10-03T16:45:00Z",
+        "deploymentTx": "0xe74143de174c8b2bd71170571e297edde6eb27e5e6bdcda550edfadf5db471dd"
+      },
+      "baseAsset": {
+        "symbol": "USDC",
+        "address": "0x534b2f3A21130d7a60830c2Df862319e593943A3",
+        "decimals": 6,
+        "status": "VERIFIED",
+        "verificationSource": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+        "lastVerified": "2026-10-03"
+      },
+      "tokens": [
+        {
+          "symbol": "WMON",
+          "address": null,
+          "decimals": 18,
+          "status": "UNVERIFIED",
+          "verificationSource": null,
+          "lastVerified": null
+        }
+      ],
+      "venues": [
+        {
+          "name": "pancakeswap-v3",
+          "type": "universal-router",
+          "routerAddress": "0x94D220C58A23AE0c2eE29344b00A30D1c2d9F1bc",
+          "adapter": "UniV3StyleAdapter",
+          "status": "UNVERIFIED",
+          "verificationSource": "https://github.com/pancakeswap/pancake-developer/blob/master/docs/pages/contracts/universal-router/addresses.md",
+          "lastVerified": "2026-10-03",
+          "notes": "Pending confirmation on testnet V3 router interface compatibility"
+        }
+      ]
+    },
+    "mainnet": {
+      "name": "monad-mainnet",
+      "chainId": 143,
+      "rpcSource": "https://rpc.monad.xyz (env: MONAD_MAINNET_RPC_URL)",
+      "explorer": "https://monadscan.com",
+      "status": "VERIFIED",
+      "verificationSource": "https://docs.monad.xyz/developer-essentials/network-information",
+      "lastVerified": "2026-10-03",
+      "baseAsset": {
+        "symbol": "USDC",
+        "address": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+        "decimals": 6,
+        "status": "VERIFIED",
+        "verificationSource": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+        "lastVerified": "2026-10-03"
+      },
+      "tokens": [
+        {
+          "symbol": "WMON",
+          "address": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A",
+          "decimals": 18,
+          "status": "VERIFIED",
+          "verificationSource": "https://developers.uniswap.org/docs/protocols/v3/deployments/v3-monad-deployments",
+          "lastVerified": "2026-10-03"
+        }
+      ],
+      "venues": [
+        {
+          "name": "uniswap-v3",
+          "type": "v3-swap-router02",
+          "routerAddress": "0xfe31f71c1b106eac32f1a19239c9a9a72ddfb900",
+          "universalRouter": "0x0d97dc33264bfc1c226207428a79b26757fb9dc3",
+          "factory": "0x204faca1764b154221e35c0d20abb3c525710498",
+          "quoterV2": "0x661e93cca42afacb172121ef892830ca3b70f08d",
+          "adapter": "UniV3StyleAdapter",
+          "status": "VERIFIED",
+          "verificationSource": "https://developers.uniswap.org/docs/protocols/v3/deployments/v3-monad-deployments",
+          "lastVerified": "2026-10-03"
+        },
+        {
+          "name": "uniswap-v4",
+          "type": "v4-pool-manager",
+          "poolManager": "0x188d586ddcf52439676ca21a244753fa19f9ea8e",
+          "universalRouter": "0x0d97dc33264bfc1c226207428a79b26757fb9dc3",
+          "quoter": "0xa222dd357a9076d1091ed6aa2e16c9742dd26891",
+          "adapter": "UniV4StyleAdapter",
+          "status": "VERIFIED",
+          "verificationSource": "https://developers.uniswap.org/docs/protocols/v4/deployments",
+          "lastVerified": "2026-10-03"
+        },
+        {
+          "name": "pancakeswap-v3",
+          "type": "universal-router",
+          "routerAddress": "0x23682a588CF2601ACa977dF200938634c9F7d552",
+          "adapter": "UniV3StyleAdapter",
+          "status": "UNVERIFIED",
+          "verificationSource": "https://github.com/pancakeswap/pancake-developer/blob/master/docs/pages/contracts/universal-router/addresses.md",
+          "lastVerified": "2026-10-03",
+          "notes": "Pending verification of router ABI"
+        }
+      ]
+    }
+  }
+}
