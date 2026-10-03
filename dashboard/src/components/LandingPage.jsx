@@ -2,7 +2,7 @@ import React from "react";
 import IsometricVaultCanvas from "./IsometricVaultCanvas";
 import ArbSimulator from "./ArbSimulator";
 
-export default function LandingPage({ onLaunchApp, indexerState, indexerOnline }) {
+export default function LandingPage({ onLaunchApp, onOpenAgent, indexerState, indexerOnline }) {
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -39,10 +39,13 @@ export default function LandingPage({ onLaunchApp, indexerState, indexerOnline }
             </p>
 
             {/* Call To Action Buttons */}
-            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "48px" }}>
+            <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", marginBottom: "48px" }}>
               <button onClick={onLaunchApp} className="btn-monad-primary">
                 <span>Launch Vault Terminal</span>
                 <span style={{ fontSize: "1.1rem" }}>➔</span>
+              </button>
+              <button onClick={onOpenAgent} className="btn-monad-secondary" style={{ borderColor: "rgba(131, 110, 249, 0.45)", background: "rgba(131, 110, 249, 0.1)" }}>
+                <span>⚡ Live Agent Feed</span>
               </button>
               <button onClick={() => scrollToSection("simulator-section")} className="btn-monad-secondary">
                 <span>Test Arb Simulator</span>

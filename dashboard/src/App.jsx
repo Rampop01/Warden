@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import LandingPage from "./components/LandingPage";
 import ArbSimulator from "./components/ArbSimulator";
+import AgentCommandCenter from "./components/AgentCommandCenter";
 
 // Fallback to local indexer if present, otherwise direct Monad Testnet RPC
 const INDEXER_URL = typeof window !== "undefined" && window.location.hostname === "localhost"
@@ -460,8 +461,8 @@ export default function App() {
             {[
               { id: "overview", label: "Protocol Overview" },
               { id: "terminal", label: "Vault Terminal" },
+              { id: "agent", label: "⚡ Autonomous Agent" },
               { id: "simulator", label: "Arb Simulator" },
-              { id: "ai", label: "AI Advisor" },
               { id: "risk", label: "Risk & Proof" }
             ].map((t) => (
               <button
@@ -543,6 +544,7 @@ export default function App() {
         {activeTab === "overview" && (
           <LandingPage
             onLaunchApp={() => setActiveTab("terminal")}
+            onOpenAgent={() => setActiveTab("agent")}
             indexerState={indexerState}
             indexerOnline={indexerOnline}
           />
@@ -638,7 +640,14 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "12px" }}>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                <button
+                  className="btn-monad-primary"
+                  onClick={() => setActiveTab("agent")}
+                  style={{ fontSize: "0.85rem", padding: "8px 18px" }}
+                >
+                  ⚡ Open Agent Sentinel
+                </button>
                 <button
                   className="btn-monad-secondary"
                   onClick={() => {
@@ -786,44 +795,14 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 4: AI ADVISOR */}
-        {activeTab === "ai" && (
-          <div className="glass-card" style={{ padding: "32px", maxWidth: 1000, margin: "0 auto" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
-              <div>
-                <h3 style={{ fontSize: "1.5rem", margin: 0 }}>AI Agent Operational Intelligence</h3>
-                <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginTop: "4px" }}>
-                  Autonomous telemetry synthesis generated from the live on-chain indexer
-                </p>
-              </div>
-              <button className="btn-monad-primary" onClick={fetchAiReport} disabled={loadingAi}>
-                {loadingAi ? "Synthesizing Report..." : "Generate Live AI Report"}
-              </button>
-            </div>
-
-            {aiReport ? (
-              <div style={{ background: "rgba(10, 12, 18, 0.7)", border: "1px solid var(--border-hairline)", borderRadius: "14px", padding: "24px" }}>
-                <div style={{ display: "flex", gap: "12px", marginBottom: "16px", alignItems: "center" }}>
-                  <span className="hero-badge">Status: {aiReport.vault_status}</span>
-                  <span className="font-mono" style={{ fontSize: "0.75rem", color: "var(--text-tertiary)", marginLeft: "auto" }}>
-                    Generated: {aiReport.generated_at}
-                  </span>
-                </div>
-                <p style={{ fontSize: "1rem", lineHeight: 1.6, color: "var(--text-platinum)", marginBottom: "20px" }}>
-                  {aiReport.executive_summary}
-                </p>
-                <div style={{ display: "flex", gap: "32px", fontSize: "0.85rem", color: "var(--text-secondary)", borderTop: "1px solid var(--border-hairline)", paddingTop: "16px", flexWrap: "wrap" }}>
-                  <div>Total Indexed Trades: <strong style={{ color: "#ffffff" }}>{aiReport.total_trades}</strong></div>
-                  <div>Win Rate: <strong style={{ color: "var(--emerald)" }}>{aiReport.win_rate_pct}%</strong></div>
-                  <div>Net Yield: <strong style={{ color: "#ffffff" }}>{aiReport.net_pnl}</strong></div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-tertiary)", fontSize: "0.95rem" }}>
-                Click "Generate Live AI Report" to query the indexer and run the AI advisor synthesis on live contract state.
-              </div>
-            )}
-          </div>
+        {/* VIEW 4: AUTONOMOUS AGENT COMMAND CENTER & TELEMETRY */}
+        {activeTab === "agent" && (
+          <AgentCommandCenter
+            indexerState={indexerState}
+            walletAddress={walletAddress}
+            userDepositedUsdc={userDepositedUsdc}
+            onSwitchToTerminal={() => setActiveTab("terminal")}
+          />
         )}
 
         {/* VIEW 5: RISK & ON-CHAIN PROOF */}
