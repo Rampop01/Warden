@@ -244,6 +244,18 @@ export default function LandingPage({ onLaunchApp, onOpenAgent, indexerState, in
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>
                 </button>
+                <a
+                  href="https://youtu.be/z7WPtDbIuNA"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="anchor-white-btn"
+                  style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px" }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 8.64L15.27 12 10 15.36V8.64M8 5v14l11-7L8 5z"/>
+                  </svg>
+                  <span>Watch Walkthrough</span>
+                </a>
                 <button onClick={() => setActiveModalSpec(MODULE_SPECS.vault)} className="anchor-white-btn">
                   <span>View Specs</span>
                 </button>

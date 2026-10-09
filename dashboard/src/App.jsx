@@ -427,31 +427,21 @@ export default function App() {
             onClick={() => setActiveTab("overview")}
             style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", flexShrink: 0 }}
           >
-            <div
+            <img
+              src="/warden-logo.jpg"
+              alt="Warden"
               style={{
                 width: "36px",
                 height: "36px",
                 borderRadius: "10px",
-                background: "linear-gradient(135deg, #836ef9 0%, #432ec4 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                objectFit: "cover",
                 boxShadow: "0 0 16px rgba(131, 110, 249, 0.45)",
-                border: "1px solid rgba(255, 255, 255, 0.25)"
+                border: "1px solid rgba(131, 110, 249, 0.4)"
               }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="M12 8v8" />
-                <path d="M8 12h8" />
-              </svg>
-            </div>
+            />
             <div>
-              <div style={{ fontSize: "1.2rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#ffffff", display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ fontSize: "1.24rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#ffffff", display: "flex", alignItems: "center" }}>
                 <span>WARDEN</span>
-                <span className="font-mono" style={{ fontSize: "0.68rem", color: "var(--monad-purple)", background: "rgba(131, 110, 249, 0.15)", padding: "2px 6px", borderRadius: "4px" }}>
-                  MONAD
-                </span>
               </div>
             </div>
           </div>
