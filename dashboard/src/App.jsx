@@ -421,11 +421,11 @@ export default function App() {
           borderBottom: "1px solid var(--border-hairline)"
         }}
       >
-        <div style={{ maxWidth: 1300, margin: "0 auto", padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+        <div style={{ maxWidth: 1600, margin: "0 auto", padding: "14px 36px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
           {/* Logo & Brand */}
           <div
             onClick={() => setActiveTab("overview")}
-            style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer" }}
+            style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", flexShrink: 0 }}
           >
             <div
               style={{
@@ -447,7 +447,7 @@ export default function App() {
               </svg>
             </div>
             <div>
-              <div style={{ fontSize: "1.25rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#ffffff", display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ fontSize: "1.2rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#ffffff", display: "flex", alignItems: "center", gap: "6px" }}>
                 <span>WARDEN</span>
                 <span className="font-mono" style={{ fontSize: "0.68rem", color: "var(--monad-purple)", background: "rgba(131, 110, 249, 0.15)", padding: "2px 6px", borderRadius: "4px" }}>
                   MONAD
@@ -456,12 +456,12 @@ export default function App() {
             </div>
           </div>
 
-          {/* Nav Tabs Switcher */}
-          <nav style={{ display: "flex", gap: "6px", background: "rgba(10, 12, 18, 0.6)", padding: "4px", borderRadius: "12px", border: "1px solid var(--border-hairline)" }}>
+          {/* Nav Tabs Switcher (Anchor AI Floating Glass Capsule) */}
+          <nav style={{ display: "flex", gap: "4px", background: "rgba(8, 12, 22, 0.75)", padding: "4px 6px", borderRadius: "9999px", border: "1px solid rgba(255, 255, 255, 0.12)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)", overflowX: "auto" }}>
             {[
-              { id: "overview", label: "Protocol Overview" },
+              { id: "overview", label: "Overview" },
               { id: "terminal", label: "Vault Terminal" },
-              { id: "agent", label: "⚡ Autonomous Agent" },
+              { id: "agent", label: "Autonomous Agent" },
               { id: "simulator", label: "Arb Simulator" },
               { id: "risk", label: "Risk & Proof" }
             ].map((t) => (
@@ -469,15 +469,17 @@ export default function App() {
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
                 style={{
-                  background: activeTab === t.id ? "rgba(131, 110, 249, 0.2)" : "transparent",
-                  color: activeTab === t.id ? "#ffffff" : "var(--text-secondary)",
-                  border: activeTab === t.id ? "1px solid rgba(131, 110, 249, 0.45)" : "1px solid transparent",
-                  borderRadius: "8px",
-                  padding: "7px 15px",
+                  background: activeTab === t.id ? "var(--monad-purple)" : "transparent",
+                  color: activeTab === t.id ? "#ffffff" : "rgba(255, 255, 255, 0.72)",
+                  border: "none",
+                  borderRadius: "9999px",
+                  padding: "6px 14px",
                   fontWeight: 600,
-                  fontSize: "0.85rem",
+                  fontSize: "0.82rem",
                   cursor: "pointer",
-                  transition: "all 0.2s ease"
+                  whiteSpace: "nowrap",
+                  transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                  boxShadow: activeTab === t.id ? "0 2px 14px rgba(131, 110, 249, 0.5)" : "none"
                 }}
               >
                 {t.label}
@@ -486,7 +488,7 @@ export default function App() {
           </nav>
 
           {/* Right Status & Wallet Actions */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
             <div
               style={{
                 display: "inline-flex",
@@ -538,8 +540,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Page Container */}
-      <main style={{ maxWidth: 1300, margin: "0 auto", padding: "28px 24px", position: "relative", zIndex: 1 }}>
+      {/* Main Page Container: Full-width root with expansive views */}
+      <main style={{ width: "100%", position: "relative", zIndex: 1 }}>
         {/* VIEW 1: LANDING PAGE */}
         {activeTab === "overview" && (
           <LandingPage
@@ -552,7 +554,7 @@ export default function App() {
 
         {/* VIEW 2: VAULT TERMINAL (WEB3 APP) */}
         {activeTab === "terminal" && (
-          <div>
+          <div style={{ maxWidth: 1600, margin: "0 auto", padding: "28px 36px" }}>
             {/* Top Stat Row */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px", marginBottom: "28px" }}>
               <div className="glass-card" style={{ padding: "24px" }}>
@@ -624,8 +626,13 @@ export default function App() {
             {/* Prominent Active Vault Position Card */}
             <div className="glass-card" style={{ padding: "24px 28px", marginBottom: "28px", border: "1px solid rgba(16, 185, 129, 0.4)", background: "rgba(16, 185, 129, 0.05)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(16, 185, 129, 0.15)", border: "1px solid var(--emerald)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem" }}>
-                  🏦
+                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(16, 185, 129, 0.15)", border: "1px solid var(--emerald)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--emerald)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 9v1" />
+                    <path d="M12 14v1" />
+                  </svg>
                 </div>
                 <div>
                   <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--emerald)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -644,9 +651,12 @@ export default function App() {
                 <button
                   className="btn-monad-primary"
                   onClick={() => setActiveTab("agent")}
-                  style={{ fontSize: "0.85rem", padding: "8px 18px" }}
+                  style={{ fontSize: "0.85rem", padding: "8px 18px", display: "inline-flex", alignItems: "center", gap: "8px" }}
                 >
-                  ⚡ Open Agent Sentinel
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                  <span>Open Agent Sentinel</span>
                 </button>
                 <button
                   className="btn-monad-secondary"
@@ -781,7 +791,7 @@ export default function App() {
                 </div>
 
                 <div style={{ fontSize: "0.8rem", color: "var(--text-tertiary)", lineHeight: 1.6, marginTop: "16px" }}>
-                  ✦ Invariant Guarantee: Withdrawals are permanently open even during guardian pauses. Funds are only locked for the single transaction block when an atomic cyclic trade executes.
+                  <strong style={{ color: "var(--monad-purple)" }}>Invariant Guarantee:</strong> Withdrawals are permanently open even during guardian pauses. Funds are only locked for the single transaction block when an atomic cyclic trade executes.
                 </div>
               </div>
             </div>
@@ -797,12 +807,14 @@ export default function App() {
 
         {/* VIEW 4: AUTONOMOUS AGENT COMMAND CENTER & TELEMETRY */}
         {activeTab === "agent" && (
-          <AgentCommandCenter
-            indexerState={indexerState}
-            walletAddress={walletAddress}
-            userDepositedUsdc={userDepositedUsdc}
-            onSwitchToTerminal={() => setActiveTab("terminal")}
-          />
+          <div style={{ maxWidth: 1600, margin: "0 auto", padding: "28px 36px" }}>
+            <AgentCommandCenter
+              indexerState={indexerState}
+              walletAddress={walletAddress}
+              userDepositedUsdc={userDepositedUsdc}
+              onSwitchToTerminal={() => setActiveTab("terminal")}
+            />
+          </div>
         )}
 
         {/* VIEW 5: RISK & ON-CHAIN PROOF */}
